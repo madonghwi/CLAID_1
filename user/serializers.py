@@ -22,25 +22,25 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
 
-# class UserSerializer(serializers.ModelSerializer):
-#     '''
-#     작성자 : 이준영
-#     내용 : 일반 로그인 기능 구현 전 sns 로그인
-#     최초 작성일 : 2023.06.14
-#     '''
-#     class Meta:
-#         model = User
-#         fields = "__all__"
+class SNSUserSerializer(serializers.ModelSerializer):
+    '''
+    작성자 : 이준영
+    내용 : 일반 로그인 기능 구현 전 sns 로그인
+    최초 작성일 : 2023.06.14
+    '''
+    class Meta:
+        model = User
+        fields = "__all__"
     
-#     def create(self, validated_data):        
-#         user = super().create(validated_data)
-#         user.save()        
-#         return user
+    def create(self, validated_data):        
+        user = super().create(validated_data)
+        user.save()        
+        return user
     
-#     def update(self, instance, validated_data):
-#         user = super().update(instance, validated_data)
-#         user.save()
-#         return user
+    def update(self, instance, validated_data):
+        user = super().update(instance, validated_data)
+        user.save()
+        return user
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -59,12 +59,18 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
 
-        message = render_to_string("email_signup_message.html", {
-            "user":user,
-            "domain":"localhost:8000",
-            "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-            "token": account_activation_token.make_token(user),
-        })
+        message = (
+        "안녕하세요, {nickname}님!\n\n"
+        "회원가입 인증을 완료하려면 다음 링크를 클릭해주세요:\n"
+        "http://{domain}/user/activate/{uid}/{token}\n\n"
+        "---\n"
+        "감사합니다!"
+        ).format(
+            nickname=user.nickname,
+            domain="localhost:8000",
+            uid=urlsafe_base64_encode(force_bytes(user.pk)),
+            token=account_activation_token.make_token(user),
+        )
 
         subject = "회원가입 인증 메일입니다."
         to = [user.email]
