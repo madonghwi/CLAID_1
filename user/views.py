@@ -15,10 +15,22 @@ import traceback
 from django.shortcuts import redirect, render
 from .models import User
 from article.models import Article
-
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
 from django.core.mail import send_mail
 
 
+def login(request):
+    if request.method == 'POST':
+        email = request.POST['email']
+        password = request.POST['password']
+        user = authenticate(request, username=email, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('home')  # 로그인 성공 시 리디렉션될 URL
+        else:
+            messages.error(request, 'Invalid username or password')
+    return render(request, 'login.html')
 
 class UserSignupView(APIView):
 # 작성자 : 공민영

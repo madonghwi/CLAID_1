@@ -7,7 +7,6 @@ from CLAID import settings
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
-from article.serializers import ArticleSerializer
 from user.tokens import account_activation_token
 
 
