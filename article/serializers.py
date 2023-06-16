@@ -1,6 +1,6 @@
 from django.db import models
 from rest_framework import serializers
-from article.models import Article, Bookmark
+from article.models import Article, Bookmark, Comment
 from user.serializers import UserSerializer
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -11,7 +11,13 @@ class ArticleSerializer(serializers.ModelSerializer):
 class ArticleCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Article
-        fields = ('title', 'content')
+        fields = ('title', 'content', 'article_image', 'song')
+
+
+class CommentSerializer(serializers.Serializer):
+    class Meta:
+        model = Comment
+        fields = '__all__'
 
 class BookmarkSerializer(serializers.ModelSerializer):
 # 작성자 : 마동휘

@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "claid"
 version = "0.1.0"
-description = ""
-authors = ["madonghwi <ehd0831@naver.com>"]
+description = "AI Song Conversion Community Website"
+authors = ["Lee Juneyoung <wnsdud318@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -17,8 +17,17 @@ pillow = "9.5.0"
 sqlparse = "0.4.4"
 django-cleanup = "7.0.0"
 django-dotenv = "^1.4.2"
+schedule = "^1.2.0"
+pytz = "^2023.3"
+
+requests = "^2.31.0"
+setuptools = "^67.8.0"
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[settings]
+virtualenvs.create = true
+virtualenvs.in-project = true

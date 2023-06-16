@@ -1,5 +1,6 @@
 from django.db import models
 from user.models import User
+from django.utils import timezone
 
 class Article(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -12,6 +13,12 @@ class Article(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     #Tags = models.ManytoManyField(Tag, related_name='articles',blank=True)
     #Genre = models.ManytoManyField(Genre, related_name='articles',blank=True)
+    hits = models.PositiveIntegerField(default=0)
+
+    @property
+    def click(self):
+        self.hits +=1
+        self.save()
 
 
 class Comment(models.Model):
@@ -29,3 +36,19 @@ class Bookmark(models.Model):
     
     def __str__(self):
         return f"{self.user.username} bookmarked {self.post.title}"
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[-1].strip()
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+class HitsCount(models.Model):
+    ip = models.CharField(max_length=30)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
+    expire_date = models.DateTimeField(default=timezone.now)
+
+    def __unicode__(self):
+        return self.ip
