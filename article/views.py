@@ -164,3 +164,23 @@ class CommentViewByArticle(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
+class ArticleGoodView(APIView):
+    def post(self,request,article_id):
+        article = get_object_or_404(Article, id=article_id)
+        if request.user in article.good.all():
+            article.good.remove(request.user)
+            return Response("좋아요를 취소하였습니다.", status=status.HTTP_200_OK)
+        else:
+            article.good.add(request.user)
+            return Response("좋아요를 눌렀습니다.", status=status.HTTP_200_OK)
+        
+
+class CommentGoodView(APIView):
+    def post(self,request,comment_id):
+        comment = get_object_or_404(Comment, id=comment_id)
+        if request.user in comment.good.all():
+            comment.good.remove(request.user)
+            return Response("좋아요를 취소하였습니다.", status=status.HTTP_200_OK)
+        else:
+            comment.good.add(request.user)
+            return Response("좋아요를 눌렀습니다.", status=status.HTTP_200_OK)
