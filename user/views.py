@@ -312,15 +312,6 @@ class GoogleLogin(APIView):
     '''  
     permission_classes = [AllowAny]
     def get(self, request):
-        # frontend_base_url = "http:127.0.0.1/5500"
-        # client_id = GOOGLE_API_KEY
-        # redirect_uri = frontend_base_url +  '/temp.html'
-        # scope = "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile";
-        # param = f'scope={scope}&include_granted_scopes=true&response_type=token&state=pass-through value&prompt=consent&client_id={client_id}&redirect_uri={redirect_uri}';
-        # path = 'https://accounts.google.com/o/oauth2/v2/auth'
-        # token_response = requests.post(path, param)
-        # print(token_response)
-        # return redirect(path+param)
         return Response(GOOGLE_API_KEY, status=status.HTTP_200_OK)
     
     def post(self, request):
@@ -330,7 +321,7 @@ class GoogleLogin(APIView):
             access_token = request.data["access_token"]
         else:
             return Response({'msg':'google access_token 받아오지 못함'})
-        
+        print(access_token)
         '''
         작성자 :김은수
         내용 : 구글 oauth2 서버에 요청해서 유저정보 받아오기,
@@ -346,23 +337,22 @@ class GoogleLogin(APIView):
         )
         
         user_data = user_data.json()
+        
+        email = user_data.get("email")
 
-        # expires_in = token_response.json().get('expires_in')
-        # refresh_token = token_response.json().get('refresh_token')
-        # refresh_token_expires_in = token_response.json().get('refresh_token_expires_in')
-        # print(user_data)
+
         data = {
             "profile_image": user_data.get("picture"),
-            "email": user_data.get("email"),
+            "email": email,
             "nickname": user_data.get("name"),
             # "login_type": "google",
         }
         
         try:
-            google_user, created = User.objects.get_or_create(email=user_data.get("email"), defaults=data)
+            google_user, created = User.objects.get_or_create(email=email, defaults=data)
             if created:
                 message = "신규 유저 정보 생성!"
-                response_status = status.HTTP_200_OK
+                response_status = status.HTTP_200_OK               
             else:
                 serializer = SNSUserSerializer(google_user, data=data, partial=True)
                 if serializer.is_valid():
@@ -374,34 +364,39 @@ class GoogleLogin(APIView):
         except Exception as e:
             return Response({"message": "DB 저장 오류입니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        
+        refresh = RefreshToken.for_user(google_user)
+        access_token = MyTokenObtainPairSerializer.get_token(google_user)
 
-        return Response(message, status=response_status)
+        return Response(
+                {'message': message, "refresh": str(refresh), "access": str(access_token.access_token)},
+                status=response_status,
+            )
 
-def SocialLogin(** kwargs):
-    '''
-    작성자 :김은수
-    내용 : 소셜 로그인
-    최초 작성일 : 2023.06.13
-    업데이트 일자 : 2023.06.13
-    '''  
-    data = {k: v for k, v in kwargs.items() if v is not None}
-    email = data.get('email')
-    try:
-        user = User.objects.get(email=email)
-        return Response(
-            {"refresh": str(refresh), "access": str(access_token.access_token)},
-            status=status.HTTP_200_OK,
-        )
-    except User.DoesNotExist:
-        new_user = User.objects.create(**data)
-        # pw는 사용불가로 지정
-        new_user.set_unusable_password()
-        new_user.save()
-        # 이후 토큰 발급해서 프론트로
-        refresh = RefreshToken.for_user(new_user)
-        access_token = MyTokenObtainPairSerializer.get_token(new_user)
-        return Response(
-            {"refresh": str(refresh), "access": str(access_token.access_token)},
-            status=status.HTTP_200_OK,
-        )
+
+# def SocialLogin(** kwargs):
+#     '''
+#     작성자 :김은수
+#     내용 : 소셜 로그인
+#     최초 작성일 : 2023.06.13
+#     업데이트 일자 : 2023.06.13
+#     '''  
+#     data = {k: v for k, v in kwargs.items() if v is not None}
+#     email = data.get('email')
+#     try:
+#         user = User.objects.get(email=email)
+#         return Response(
+#             {"refresh": str(refresh), "access": str(access_token.access_token)},
+#             status=status.HTTP_200_OK,
+#         )
+#     except User.DoesNotExist:
+#         new_user = User.objects.create(**data)
+#         # pw는 사용불가로 지정
+#         new_user.set_unusable_password()
+#         new_user.save()
+#         # 이후 토큰 발급해서 프론트로
+#         refresh = RefreshToken.for_user(new_user)
+#         access_token = MyTokenObtainPairSerializer.get_token(new_user)
+#         return Response(
+#             {"refresh": str(refresh), "access": str(access_token.access_token)},
+#             status=status.HTTP_200_OK,
+#         )
