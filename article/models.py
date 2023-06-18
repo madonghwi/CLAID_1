@@ -30,7 +30,7 @@ class Comment(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    #good = models.ManyToManyField(User, related_name='good_comment',blank=True)
+    good = models.ManyToManyField(User, related_name='good_comment',blank=True)
 
 
 def get_client_ip(request):
