@@ -24,6 +24,8 @@ from CLAID.settings import SOCIAL_OUTH_CONFIG
 from article.models import Article
 
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import status, permissions
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.views import APIView
@@ -379,9 +381,13 @@ def SocialLogin(** kwargs):
         )
 
 class ProfileAPIView(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('/login')
+        
         profile = Profile.objects.get(user=request.user)
         if request.user.login_type == 'sns':
             serializer = SNSUserSerializer(request.user)
@@ -391,17 +397,28 @@ class ProfileAPIView(APIView):
     
     def put(self, request):
         profile = Profile.objects.get(user=request.user)
-        user_serializer = UserSerializer(profile.user, data=request.data)
-        profile_serializer = ProfileSerializer(profile, data=request.data)
-
-        if user_serializer.is_valid() and profile_serializer.is_valid():
-            user_serializer.save()
+        data = {
+            "nickname": request.data.get("nickname", profile.nickname),
+            "profile_image": request.data.get("profile_image", profile.profile_image)
+        }
+        profile_serializer = ProfileSerializer(profile, data=data, partial=True)
+        if profile_serializer.is_valid():
             profile_serializer.save()
-            return Response((
-                "user": user_serializer.data,
-                "profile": profile_serializer.data
-            ))
-        return Response({
-            "user_errors": user_serializer.errors,
-            "profile_errors": profile_serializer.errors
-        }, status=400)
+            return Response(profile_serializer.data)
+        return Response(profile_serializer.errors, status=400)
+    
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.jwt_authenticate(request)
+        except TokenError as e:
+            return self.handle_invalid_token(e)
+        return super().dispatch(request, *args, **kwargs)
+    
+    def jwt_authenticate(self, request):
+        auth = JWTAuthentication()
+        return auth.authenticate(request)
+
+    def handle_invalid_token(self, error):
+        if isinstance(error, InvalidToken):
+            return Response({"error": "유효하지 않은 액세스 토큰입니다."}, status=401)
+        return Response({"error": "토큰 오류 발생"}, status=401)
