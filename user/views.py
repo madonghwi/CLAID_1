@@ -397,7 +397,8 @@ class GoogleLogin(APIView):
 #     작성자 :김은수
 #     내용 : 소셜 로그인
 #     최초 작성일 : 2023.06.13
-#     업데이트 일자 : 2023.06.13
+#     업데이트 일자 : 2023.06.19
+#     내용 : 이제는 미사용 코드
 #     '''  
 #     data = {k: v for k, v in kwargs.items() if v is not None}
 #     email = data.get('email')
