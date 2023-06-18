@@ -85,10 +85,13 @@ class ArticleDetailView(APIView):
     작성자 : 공민영
     내용 : 게시글 상세보기
     최초 작성일 : 2023.06.08
-    업데이트 일자 : 2023.06.08
+    최종 수정자 : 이준영
+    수정내용 : 오류 시 404가 나오게 바꿈, put 메시지 수정
+    nickname 추가
+    업데이트 일자 : 2023.06.17
     '''
     def get(self, request, article_id):
-        article = Article.objects.get(id = article_id)
+        article = get_object_or_404(Article, id = article_id)
         serializer = ArticleSerializer(article)
         '''
         작성자 :왕규원
@@ -112,8 +115,8 @@ class ArticleDetailView(APIView):
     최초 작성일 : 2023.06.08
     업데이트 일자 : 2023.06.08
     '''
-    def put(self, request, article_id):
-            article = Article.objects.get(id = article_id)
+    def patch(self, request, article_id):
+            article = get_object_or_404(Article, id = article_id)
                 # 본인이 작성한 게시글이 맞다면
             if request.user == article.user:
                 serializer = ArticleCreateSerializer(article, data=request.data)
@@ -124,7 +127,7 @@ class ArticleDetailView(APIView):
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 # 본인의 게시글이 아니라면
             else:
-                return Response({'message':'로그인 후 이용해주세요.'}, status=status.HTTP_403_FORBIDDEN)
+                return Response({'message':'본인 게시글만 수정 가능합니다.'}, status=status.HTTP_403_FORBIDDEN)
 
     '''
     작성자 : 공민영
@@ -133,7 +136,7 @@ class ArticleDetailView(APIView):
     업데이트 일자 : 2023.06.08
     '''
     def delete(self, request, article_id):
-            article = Article.objects.get(id=article_id)
+            article = get_object_or_404(Article, id = article_id)
                 # 본인이 작성한 게시글이 맞다면
             if request.user == article.user:
                 article.delete()
@@ -200,3 +203,23 @@ class CommentViewByArticle(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
+class ArticleGoodView(APIView):
+    def post(self,request,article_id):
+        article = get_object_or_404(Article, id=article_id)
+        if request.user in article.good.all():
+            article.good.remove(request.user)
+            return Response("좋아요를 취소하였습니다.", status=status.HTTP_200_OK)
+        else:
+            article.good.add(request.user)
+            return Response("좋아요를 눌렀습니다.", status=status.HTTP_200_OK)
+        
+
+class CommentGoodView(APIView):
+    def post(self,request,comment_id):
+        comment = get_object_or_404(Comment, id=comment_id)
+        if request.user in comment.good.all():
+            comment.good.remove(request.user)
+            return Response("좋아요를 취소하였습니다.", status=status.HTTP_200_OK)
+        else:
+            comment.good.add(request.user)
+            return Response("좋아요를 눌렀습니다.", status=status.HTTP_200_OK)

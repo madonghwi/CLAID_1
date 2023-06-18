@@ -64,9 +64,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     gender = models.CharField("성별", max_length=1, choices=GENDERS, null=True, blank=True)
     created_at = models.DateTimeField("생성시각", auto_now_add=True)
     updated_at = models.DateTimeField("수정시각", auto_now=True)
-    # followings = models.ManyToManyField(
-    #     "self", symmetrical=False, related_name="followers", blank=True
-    # )
+    followings = models.ManyToManyField("self", symmetrical=False, related_name="followers", blank=True)
     # """
     # symmetrical : 대칭여부설정 Ture라면 자동 맞팔, False라면 한쪽만 팔로우
     # """

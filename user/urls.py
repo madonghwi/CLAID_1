@@ -20,4 +20,5 @@ urlpatterns = [
     path('kakao/unlink/', views.KakaoUnLinkView.as_view()),    
     path('kakao/logout/', views.KakaoLogoutView.as_view()),
     path('profile/<int:user_id>/', views.profile_view, name='profile_view'),
+    path('follow/<int:user_id>/', views.FollowView.as_view(), name='follow_view')
 ]
