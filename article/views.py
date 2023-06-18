@@ -113,7 +113,7 @@ class ArticleDetailView(APIView):
     최초 작성일 : 2023.06.08
     업데이트 일자 : 2023.06.08
     '''
-    def put(self, request, article_id):
+    def patch(self, request, article_id):
             article = get_object_or_404(Article, id = article_id)
                 # 본인이 작성한 게시글이 맞다면
             if request.user == article.user:
