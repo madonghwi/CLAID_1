@@ -103,18 +103,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     def is_staff(self):
         return self.is_admin
 
-class UserProfile(models.Model):
+class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    username = models.CharField(max_length=40, null=True, blank=True)
-    email = models.EmailField(
-        verbose_name="email address",
-        max_length=255,
-        unique=True,
-    )
+    nickname = models.CharField(max_length=20)
+    profile_image = models.ImageField(upload_to='profile_images', blank=True)
+
     def __str__(self):
-        return self.user.email
-    
-User.profile = property(lambda u: UserProfile.objects.get_or_create(user=u)[0])
+        return self.nickname
+
 # class Point(TimeStampModel):
 #     user = models.ForeignKey(User, on_delete=models.CASCADE)
 #     claid = models.IntegerField()

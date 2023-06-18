@@ -7,16 +7,17 @@ from django.utils.encoding import force_str
 from user.tokens import account_activation_token
 import traceback
 from django.shortcuts import redirect, render
-from .models import User
+from .models import User, Profile
 from article.models import Article
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, get_user_model
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.contrib import messages
 
 from user.models import User
 from user.tokens import account_activation_token
-from user.serializers import UserSerializer, SNSUserSerializer, MyTokenObtainPairSerializer, CustomTokenObtainPairSerializer
+from user.serializers import UserSerializer, SNSUserSerializer, MyTokenObtainPairSerializer, CustomTokenObtainPairSerializer, ProfileSerializer
 
 from CLAID.settings import SOCIAL_OUTH_CONFIG
 
@@ -357,3 +358,31 @@ def SocialLogin(** kwargs):
             {"refresh": str(refresh), "access": str(access_token.access_token)},
             status=status.HTTP_200_OK,
         )
+
+class ProfileAPIView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request):
+        profile = Profile.objects.get(user=request.user)
+        if request.user.login_type == 'sns':
+            serializer = SNSUserSerializer(request.user)
+        else:
+            serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+    
+    def put(self, request):
+        profile = Profile.objects.get(user=request.user)
+        user_serializer = UserSerializer(profile.user, data=request.data)
+        profile_serializer = ProfileSerializer(profile, data=request.data)
+
+        if user_serializer.is_valid() and profile_serializer.is_valid():
+            user_serializer.save()
+            profile_serializer.save()
+            return Response((
+                "user": user_serializer.data,
+                "profile": profile_serializer.data
+            ))
+        return Response({
+            "user_errors": user_serializer.errors,
+            "profile_errors": profile_serializer.errors
+        }, status=400)
