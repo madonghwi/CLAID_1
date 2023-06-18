@@ -9,7 +9,7 @@ from article.serializers import CommentSerializer
 
 from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework import status, permissions
+from rest_framework import status, permissions, generics
 from rest_framework.response import Response
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -19,6 +19,8 @@ from django.utils import timezone
 from article.serializers import ArticleSerializer, ArticleCreateSerializer
 from rest_framework import status
 from pathlib import Path
+from .serializers import BookmarkSerializer
+from .models import Bookmark
 
 import django
 import json
@@ -156,6 +158,40 @@ class CommentView(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
 
     
+# 작성자 : 공민영
+# 내용 : 게시글 삭제하기
+# 최초 작성일 : 2023.06.08
+# 업데이트 일자 : 2023.06.08
+    def delete(self, request, user_id):
+        article = Article.objects.get(id=user_id)
+        # 본인이 작성한 게시글이 맞다면
+        if request.user == article.user:
+            article.delete()
+            return Response({'message':'게시글이 삭제되었습니다.'}, status=status.HTTP_204_NO_CONTENT)
+        # 본인의 게시글이 아니라면
+        else:
+            return Response({'message':'본인 게시글만 삭제 가능합니다.'}, status=status.HTTP_403_FORBIDDEN)
+
+class BookmarkCreate(generics.CreateAPIView):
+# 작성자 : 마동휘
+# 내용 : 북마크
+# 최초 작성일 : 2023.06.12
+# 업데이트 일자 : 2023.06.13
+    serializer_class = BookmarkSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        from user.serializers import UserSerializer
+        return UserSerializer
+    
+class BookmarkDelete(generics.DestroyAPIView):
+# 작성자 : 마동휘
+# 내용 : 북마크
+# 최초 작성일 : 2023.06.12
+# 업데이트 일자 : 2023.06.13
+    queryset = Bookmark.objects.all()
+    serializer_class = BookmarkSerializer
+    permission_classes = [IsAuthenticated]
 
 class CommentViewByArticle(generics.RetrieveUpdateDestroyAPIView):
     '''
@@ -167,3 +203,23 @@ class CommentViewByArticle(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
+class ArticleGoodView(APIView):
+    def post(self,request,article_id):
+        article = get_object_or_404(Article, id=article_id)
+        if request.user in article.good.all():
+            article.good.remove(request.user)
+            return Response("좋아요를 취소하였습니다.", status=status.HTTP_200_OK)
+        else:
+            article.good.add(request.user)
+            return Response("좋아요를 눌렀습니다.", status=status.HTTP_200_OK)
+        
+
+class CommentGoodView(APIView):
+    def post(self,request,comment_id):
+        comment = get_object_or_404(Comment, id=comment_id)
+        if request.user in comment.good.all():
+            comment.good.remove(request.user)
+            return Response("좋아요를 취소하였습니다.", status=status.HTTP_200_OK)
+        else:
+            comment.good.add(request.user)
+            return Response("좋아요를 눌렀습니다.", status=status.HTTP_200_OK)

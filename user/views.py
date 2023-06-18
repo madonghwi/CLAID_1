@@ -4,18 +4,30 @@ from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
+from user.tokens import account_activation_token
+import traceback
+from django.shortcuts import redirect, render
+from .models import User, Profile
+from article.models import Article
+from django.contrib.auth import authenticate, login, get_user_model
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.core.mail import send_mail
 from django.contrib import messages
 
 from user.models import User
 from user.tokens import account_activation_token
-from user.serializers import UserSerializer, SNSUserSerializer, MyTokenObtainPairSerializer
+
+from user.serializers import UserSerializer, SNSUserSerializer, MyTokenObtainPairSerializer, CustomTokenObtainPairSerializer, ProfileSerializer
+
 
 from CLAID.settings import SOCIAL_OUTH_CONFIG
 
 from article.models import Article
 
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import status, permissions
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.views import APIView
@@ -392,6 +404,7 @@ class GoogleLogin(APIView):
             )
 
 
+
 # def SocialLogin(** kwargs):
 #     '''
 #     작성자 :김은수
@@ -420,3 +433,48 @@ class GoogleLogin(APIView):
 #             {"refresh": str(refresh), "access": str(access_token.access_token)},
 #             status=status.HTTP_200_OK,
 #         )
+
+
+class ProfileAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('/login')
+        
+        profile = Profile.objects.get(user=request.user)
+        if request.user.login_type == 'sns':
+            serializer = SNSUserSerializer(request.user)
+        else:
+            serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+    
+    def put(self, request):
+        profile = Profile.objects.get(user=request.user)
+        data = {
+            "nickname": request.data.get("nickname", profile.nickname),
+            "profile_image": request.data.get("profile_image", profile.profile_image)
+        }
+        profile_serializer = ProfileSerializer(profile, data=data, partial=True)
+        if profile_serializer.is_valid():
+            profile_serializer.save()
+            return Response(profile_serializer.data)
+        return Response(profile_serializer.errors, status=400)
+    
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.jwt_authenticate(request)
+        except TokenError as e:
+            return self.handle_invalid_token(e)
+        return super().dispatch(request, *args, **kwargs)
+    
+    def jwt_authenticate(self, request):
+        auth = JWTAuthentication()
+        return auth.authenticate(request)
+
+    def handle_invalid_token(self, error):
+        if isinstance(error, InvalidToken):
+            return Response({"error": "유효하지 않은 액세스 토큰입니다."}, status=401)
+        return Response({"error": "토큰 오류 발생"}, status=401)
+

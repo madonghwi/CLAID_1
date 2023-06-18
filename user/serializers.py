@@ -1,7 +1,7 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import serializers
-from user.models import User
+from user.models import User, Profile
 
 from article.models import Article
 from django.core.mail import EmailMessage
@@ -9,7 +9,6 @@ from CLAID import settings
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
-from article.serializers import ArticleSerializer
 from user.tokens import account_activation_token
 
 
@@ -106,3 +105,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return user
     
 
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['nickname', 'profile_image']
