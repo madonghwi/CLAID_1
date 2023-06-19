@@ -100,3 +100,19 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def is_staff(self):
         return self.is_admin
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    nickname = models.CharField(max_length=20)
+    profile_image = models.ImageField(upload_to='profile_images', blank=True)
+
+    def __str__(self):
+        return self.nickname
+
+# class Point(TimeStampModel):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     claid = models.IntegerField()
+
+#     class Meta :
+#         db_table = 'point'
+
