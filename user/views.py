@@ -399,7 +399,7 @@ class GoogleLogin(APIView):
         access_token = MyTokenObtainPairSerializer.get_token(google_user)
 
         return Response(
-                {'message': message, "refresh": str(refresh), "access": str(access_token.access_token)},
+                {'message': message, "refresh_token": str(refresh), "access_token": str(access_token.access_token)},
                 status=response_status,
             )
 
