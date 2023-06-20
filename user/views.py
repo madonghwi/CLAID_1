@@ -9,8 +9,7 @@ from django.contrib import messages
 
 from user.models import User, Profile
 from user.tokens import account_activation_token
-from user.serializers import UserSerializer, SNSUserSerializer, MyTokenObtainPairSerializer, ProfileSerializer
-
+from user.serializers import UserSerializer, SNSUserSerializer, MyTokenObtainPairSerializer, CustomTokenObtainPairSerializer, ProfileSerializer
 
 from CLAID.settings import SOCIAL_OUTH_CONFIG
 

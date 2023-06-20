@@ -169,22 +169,6 @@ class CommentViewByArticle(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
-    
-# 작성자 : 공민영
-# 내용 : 게시글 삭제하기
-# 최초 작성일 : 2023.06.08
-# 업데이트 일자 : 2023.06.08
-    def delete(self, request, user_id):
-        article = Article.objects.get(id=user_id)
-        # 본인이 작성한 게시글이 맞다면
-        if request.user == article.user:
-            article.delete()
-            return Response({'message':'게시글이 삭제되었습니다.'}, status=status.HTTP_204_NO_CONTENT)
-        # 본인의 게시글이 아니라면
-        else:
-            return Response({'message':'본인 게시글만 삭제 가능합니다.'}, status=status.HTTP_403_FORBIDDEN)
-
-
 class ArticleGoodView(APIView):
     def post(self,request,article_id):
         article = get_object_or_404(Article, id=article_id)
@@ -206,4 +190,3 @@ class CommentGoodView(APIView):
         else:
             comment.good.add(request.user.id)
             return Response("해당 댓글에 좋아요를 눌렀습니다.", status=status.HTTP_200_OK)
-

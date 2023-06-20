@@ -65,6 +65,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     created_at = models.DateTimeField("생성시각", auto_now_add=True)
     updated_at = models.DateTimeField("수정시각", auto_now=True)
     followings = models.ManyToManyField("self", symmetrical=False, related_name="followers", blank=True)
+    followings = models.ManyToManyField("self", symmetrical=False, related_name="followers", blank=True)
     # """
     # symmetrical : 대칭여부설정 Ture라면 자동 맞팔, False라면 한쪽만 팔로우
     # """
@@ -101,7 +102,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     def is_staff(self):
         return self.is_admin
 
-    
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     nickname = models.CharField(max_length=20)
