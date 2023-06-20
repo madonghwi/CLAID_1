@@ -1,13 +1,16 @@
 from django.db import models
 from user.models import User
 from django.utils import timezone
+from datetime import datetime
 
 class Article(models.Model):
+    current_time = datetime.now()
+    formatted_time = current_time.strftime("%H-%M-%S")
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     content = models.TextField()
-    article_image = models.ImageField(upload_to='article/%Y/%m', blank=True)
-    song = models.FileField(upload_to='songs/', blank=True)
+    article_image = models.ImageField(upload_to='article/%Y/%m/%d/'+formatted_time, null=True, blank=True)
+    song = models.FileField(upload_to='songs/%Y/%m/%d/'+formatted_time)
     good = models.ManyToManyField(User, related_name='good_article',blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -27,8 +30,15 @@ class Comment(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    #good = models.ManyToManyField(User, related_name='good_comment',blank=True)
+    good = models.ManyToManyField(User, related_name='good_comment',blank=True)
 
+class Bookmark(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE,related_name='bookmarks')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.user.username} bookmarked {self.post.title}"
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
