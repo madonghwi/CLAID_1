@@ -158,6 +158,18 @@ class CommentView(generics.ListCreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
+
+class CommentViewByArticle(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [AllowAny]
+    '''
+    작성자 :김은수
+    내용 : 댓글의 수정과 삭제가 가능함
+    최초 작성일 : 2023.06.07
+    업데이트 일자 : 2023.06.09
+    '''  
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
     
 # 작성자 : 공민영
 # 내용 : 게시글 삭제하기
@@ -173,37 +185,6 @@ class CommentView(generics.ListCreateAPIView):
         else:
             return Response({'message':'본인 게시글만 삭제 가능합니다.'}, status=status.HTTP_403_FORBIDDEN)
 
-class BookmarkCreate(generics.CreateAPIView):
-# 작성자 : 마동휘
-# 내용 : 북마크
-# 최초 작성일 : 2023.06.12
-# 업데이트 일자 : 2023.06.13
-    serializer_class = BookmarkSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_serializer_class(self):
-        from user.serializers import UserSerializer
-        return UserSerializer
-    
-class BookmarkDelete(generics.DestroyAPIView):
-# 작성자 : 마동휘
-# 내용 : 북마크
-# 최초 작성일 : 2023.06.12
-# 업데이트 일자 : 2023.06.13
-    queryset = Bookmark.objects.all()
-    serializer_class = BookmarkSerializer
-    permission_classes = [IsAuthenticated]
-
-class CommentViewByArticle(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [AllowAny]
-    '''
-    작성자 :김은수
-    내용 : 댓글의 수정과 삭제가 가능함
-    최초 작성일 : 2023.06.07
-    업데이트 일자 : 2023.06.09
-    '''  
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
 
 class ArticleGoodView(APIView):
     def post(self,request,article_id):
