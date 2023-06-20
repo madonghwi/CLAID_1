@@ -15,7 +15,7 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.contrib import messages
 
-from user.models import User
+from user.models import User, Profile
 from user.tokens import account_activation_token
 
 from user.serializers import UserSerializer, SNSUserSerializer, MyTokenObtainPairSerializer, ProfileSerializer
@@ -33,13 +33,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework_simplejwt.authentication import JWTAuthentication, TokenError, InvalidToken
 from rest_framework.generics import get_object_or_404
 
-'''
-작성자 : 김은수
-내용 : GOOGLE_API_KEY
-최초 작성일 : 2023.06.14
-'''
 GOOGLE_API_KEY = SOCIAL_OUTH_CONFIG['GOOGLE_API_KEY']
 
 '''
@@ -403,47 +399,12 @@ class GoogleLogin(APIView):
                 status=response_status,
             )
 
-
-
-# def SocialLogin(** kwargs):
-#     '''
-#     작성자 :김은수
-#     내용 : 소셜 로그인
-#     최초 작성일 : 2023.06.13
-#     업데이트 일자 : 2023.06.19
-#     내용 : 이제는 미사용 코드
-#     '''  
-#     data = {k: v for k, v in kwargs.items() if v is not None}
-#     email = data.get('email')
-#     try:
-#         user = User.objects.get(email=email)
-#         return Response(
-#             {"refresh": str(refresh), "access": str(access_token.access_token)},
-#             status=status.HTTP_200_OK,
-#         )
-#     except User.DoesNotExist:
-#         new_user = User.objects.create(**data)
-#         # pw는 사용불가로 지정
-#         new_user.set_unusable_password()
-#         new_user.save()
-#         # 이후 토큰 발급해서 프론트로
-#         refresh = RefreshToken.for_user(new_user)
-#         access_token = MyTokenObtainPairSerializer.get_token(new_user)
-#         return Response(
-#             {"refresh": str(refresh), "access": str(access_token.access_token)},
-#             status=status.HTTP_200_OK,
-#         )
-
-
 class ProfileAPIView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
     def get(self, request):
-        if not request.user.is_authenticated:
-            return redirect('/login')
-        
-        profile = Profile.objects.get(user=request.user)
+        profile = get_object_or_404(Profile, user=request.user)
         if request.user.login_type == 'sns':
             serializer = SNSUserSerializer(request.user)
         else:
@@ -451,7 +412,7 @@ class ProfileAPIView(APIView):
         return Response(serializer.data)
     
     def put(self, request):
-        profile = Profile.objects.get(user=request.user)
+        profile = get_object_or_404(Profile, user=request.user)
         data = {
             "nickname": request.data.get("nickname", profile.nickname),
             "profile_image": request.data.get("profile_image", profile.profile_image)
@@ -464,17 +425,16 @@ class ProfileAPIView(APIView):
     
     def dispatch(self, request, *args, **kwargs):
         try:
-            self.jwt_authenticate(request)
+            self._jwt_authenticate(request)
         except TokenError as e:
-            return self.handle_invalid_token(e)
+            return self._handle_invalid_token(e)
         return super().dispatch(request, *args, **kwargs)
     
-    def jwt_authenticate(self, request):
+    def _jwt_authenticate(self, request):
         auth = JWTAuthentication()
         return auth.authenticate(request)
 
-    def handle_invalid_token(self, error):
+    def _handle_invalid_token(self, error):
         if isinstance(error, InvalidToken):
             return Response({"error": "유효하지 않은 액세스 토큰입니다."}, status=401)
         return Response({"error": "토큰 오류 발생"}, status=401)
-

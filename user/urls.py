@@ -19,6 +19,6 @@ urlpatterns = [
     path('kakao/<int:sns_id>/', views.KakaoUserView.as_view()),    
     path('kakao/unlink/', views.KakaoUnLinkView.as_view()),    
     path('kakao/logout/', views.KakaoLogoutView.as_view()),
+    path('follow/<int:user_id>/', views.FollowView.as_view(), name='follow_view'),
     path('profile/<int:user_id>/', views.ProfileAPIView.as_view(), name='profile_view'),
-    path('follow/<int:user_id>/', views.FollowView.as_view(), name='follow_view')
 ]

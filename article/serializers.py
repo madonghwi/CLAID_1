@@ -19,7 +19,7 @@ class ArticleCreateSerializer(serializers.ModelSerializer):
         fields = ('title', 'content', 'article_image', 'song')
 
 
-class CommentSerializer(serializers.Serializer):
+class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = '__all__'
