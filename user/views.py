@@ -4,20 +4,11 @@ from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
-from user.tokens import account_activation_token
-import traceback
-from django.shortcuts import redirect, render
-from .models import User, Profile
-from article.models import Article
-from django.contrib.auth import authenticate, login, get_user_model
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 from django.core.mail import send_mail
 from django.contrib import messages
 
 from user.models import User, Profile
 from user.tokens import account_activation_token
-
 from user.serializers import UserSerializer, SNSUserSerializer, MyTokenObtainPairSerializer, ProfileSerializer
 
 
@@ -26,8 +17,6 @@ from CLAID.settings import SOCIAL_OUTH_CONFIG
 from article.models import Article
 
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import status, permissions
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.views import APIView
